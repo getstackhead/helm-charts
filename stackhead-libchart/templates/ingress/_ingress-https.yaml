@@ -1,0 +1,46 @@
+{{- define "stackhead.ingress-https" -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .root.Chart.Name }}
+  namespace: {{ .root.Values.stackhead.application.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      middlewares:
+        - name: tls-security
+      match: Host(`{{ .Domain }}`)
+      services:
+        - name: {{ .Expose.service }}
+          port: {{ .Expose.externalPort }}
+  tls:
+    certResolver: le-prod
+    options:
+      name: tls-recommended
+
+---
+# http ingress for http->https redirection
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ .root.Chart.Name }}-httpupgrade
+  namespace: {{ .root.Values.stackhead.application.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: {{ .Domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Expose.service }}
+                port:
+                  number: 80
+{{- end -}}

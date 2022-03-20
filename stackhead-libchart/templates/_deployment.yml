@@ -1,0 +1,34 @@
+{{- define "stackhead.deployment" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.root.Chart.Name }}-{{ $.root.Chart.Version }}
+  namespace: {{ $.root.Values.stackhead.application.namespace }}
+spec:
+  replicas: {{ $.root.Values.replicaCount }}
+  selector:
+    matchLabels:
+      name: {{ $.root.Chart.Name }}
+  template:
+    metadata:
+      name: {{ $.root.Chart.Name }}
+      labels:
+        name: {{ $.root.Chart.Name }}
+    spec:
+      imagePullSecrets:
+      {{- $paths := list -}}
+      {{- range $service := $.root.Values.stackhead.services }}
+      {{- if not (has $service.image.imagePullSecrets $paths)}}
+        - name: {{ $service.image.imagePullSecrets }}
+      {{- $paths = append $paths $service.image.imagePullSecrets -}}
+      {{- end }}
+      {{- end }}
+      containers:
+      {{- range $service := $.root.Values.stackhead.services }}
+        - name: {{ $service.name }}
+          image: "{{ $service.image.repository }}:{{ $service.image.tag | default "latest" }}"
+          imagePullPolicy: {{ $service.image.pullPolicy | default "Always" }}
+          ports:
+            - containerPort: {{ $service.internalPort }}
+      {{- end}}
+{{- end -}}

@@ -1,0 +1,22 @@
+{{- define "stackhead_service" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.stackhead.application.namespace | default "default" }}
+spec:
+  type: ClusterIP
+  selector:
+    name: {{ .Service.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Service.externalPort }}
+      targetPort: {{ .Service.internalPort }}
+{{end -}}
+
+{{- define "stackhead.service" -}}
+{{- range $key, $value := $.root.Values.stackhead.services -}}
+{{ include "stackhead_service" (dict "Chart" $.root.Chart "Values" $.root.Values "Service" $value)}}
+{{- end -}}
+{{- end -}}

@@ -1,0 +1,13 @@
+{{- define "stackhead.ingress" -}}
+  {{- range $domain := $.root.Values.stackhead.domains }}
+    {{- range $expose := $domain.expose }}
+      {{- if eq (int $expose.externalPort) 443 -}}
+        {{- fail "You're not allowed to expose a service to port 443" -}}
+      {{- else if eq (int $expose.externalPort) 80 -}}
+        {{- include "stackhead.ingress-https" (dict "root" $.root "Domain" $domain.domain "Expose" $expose) -}}
+      {{- else -}}
+        {{- fail "Exposing to ports other than 80 is currently not supported." -}}
+      {{- end -}}
+    {{- end }}
+  {{- end }}
+{{- end -}}
