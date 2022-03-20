@@ -1,0 +1,16 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    additionalArguments:
+      - "--certificatesresolvers.le-staging.acme.email={{ .Values.CertificateStagingMail }}"
+      - "--certificatesresolvers.le-staging.acme.storage=/data/acme.json"
+      - "--certificatesresolvers.le-staging.acme.tlschallenge=true"
+      - "--certificatesresolvers.le-staging.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.le-prod.acme.email={{ .Values.CertificateProdMail }}"
+      - "--certificatesresolvers.le-prod.acme.storage=/data/acme.json"
+      - "--certificatesresolvers.le-prod.acme.tlschallenge=true"
+      - "--certificatesresolvers.le-prod.acme.caServer=https://acme-v02.api.letsencrypt.org/directory"
